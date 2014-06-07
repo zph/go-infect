@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+args = ARGV.dup
+
+def create_release(tag)
+  system %Q{github-release release -u zph -r 'go-infect' -s $(cat ~/.github) -t  "#{tag}"}
+end
+
+TAG = args[0]
+
+case args.length
+when 0
+  exit(1)
+when 1
+  create_release(TAG)
+else
+  create_release(TAG)
+  bins = args[1..-1]
+  bins.each do |loc|
+    next unless File.exists?(loc)
+    name = loc.split('/').last
+    `github-release upload -u zph -r 'go-infect' -s $(cat ~/.github) -t #{TAG} -f #{loc} -n #{name}`
+  end
+end

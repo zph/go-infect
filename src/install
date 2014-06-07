@@ -1,0 +1,35 @@
+#!/bin/bash
+
+platform_release(){
+ echo "https://github.com/zph/go-sack/releases/download/v0.3.0/$1"
+}
+
+get_binary(){
+  wget -O $bin_path $(platform_release $1)
+}
+
+get_and_chmod(){
+  $(get_binary $1) && chmod +x $bin_path
+}
+
+bin_path="$HOME/bin/sack"
+
+echo "Installing sack"
+echo "Source: $url"
+echo "Output: $bin_path"
+
+unamev=$(uname -a)
+
+if [[ $unamev =~ "Darwin" ]];then
+  get_and_chmod "sack"
+elif [[ $unamev =~ "FreeBSD" ]]; then
+  get_and_chmod "sack.freebsd_amd64"
+else
+  get_and_chmod "sack.linux_amd64"
+fi
+
+if [[ $? == 0 ]];then
+  echo "Successfully installed"
+else
+  echo "Install failed please report an issue"
+fi
