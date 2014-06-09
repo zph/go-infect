@@ -12,14 +12,33 @@ func install(_ *cli.Context){
     lines := split(s)
     mLines := magicLines(lines)
     bundleReqs := bundleRequests(mLines)
-    fmt.Println("Results %#v", bundleReqs)
     for _, line := range bundleReqs {
+        // add go-routines and cap worker pool at ... 20?
+        processRepo(line)
+    }
+}
+
+func processRepo(line string) {
         // check each directory
         // either update or new clone
         // look for extra processing params
-        repo := strings.SplitN(line, " ", 2)
-        gitPull(repo[0])
-    }
+        arr := strings.SplitN(line, " ", 2)
+        repo := arr[0]
+        res := dirExists(outputDir(repo))
+        // fmt.Printf("Dir: %#v, %s\n", res, repo)
+        if res {
+            // git pull
+            gitPull(repo)
+        } else {
+            gitClone(repo)
+        }
+        if len(arr) > 1 {
+            cmds := arr[1]
+            if cmds != "" {
+                fmt.Printf("Cmds: %s\n", cmds)
+                // TODO: execute cmds
+            }
+        }
 }
 
 func bundleRequests(m []string) []string {

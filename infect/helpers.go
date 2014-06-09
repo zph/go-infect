@@ -6,12 +6,8 @@ import (
 	"path"
 	"strings"
     "regexp"
+    "os"
 )
-
-// func splitLine(s string) []string {
-// 	arr := strings.SplitN(s, ":", 3)
-// 	return arr
-// }
 
 func check(e error) {
 	if e != nil {
@@ -28,6 +24,20 @@ func content(path string) string {
     return s
 }
 
+func dirExists(path string) bool {
+    finfo, err := os.Stat(path)
+    if err != nil {
+        // no such file or dir
+        return false
+    }
+    if finfo.IsDir() {
+        // directory
+        return true
+    } else {
+        // file
+        return false
+    }
+}
 func outputDir(repo string) string {
     r := strings.Split(repo, "/")
     return path.Join(bundleDir, r[1])
