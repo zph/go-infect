@@ -2,39 +2,37 @@ package infect
 
 import (
 	"github.com/codegangsta/cli"
+    "strings"
+    "fmt"
 )
 
-func install(_ *cli.Context){}
+func install(_ *cli.Context){
 
+    s := content(vimrc)
+    lines := split(s)
+    mLines := magicLines(lines)
+    bundleReqs := bundleRequests(mLines)
+    fmt.Println("Results %#v", bundleReqs)
+    for _, line := range bundleReqs {
+        // check each directory
+        // either update or new clone
+        // look for extra processing params
+        repo := strings.SplitN(line, " ", 2)
+        gitPull(repo[0])
+    }
+}
 
-// import (
-// 	"fmt"
-// 	"github.com/wsxiaoys/terminal/color"
-// 	"io/ioutil"
-// 	"regexp"
-// 	"strings"
-// )
-
-// func display() {
-// 	lines := content()
-
-// 	dat, err := ioutil.ReadFile(termPath)
-// 	check(err)
-
-// 	// Header
-// 	fmt.Print(header)
-
-// 	for i, line := range lines {
-// 		li := strings.SplitN(line, " ", 3)
-// 		s := displayLines(string(dat), i, li[0], li[1], li[2])
-// 		fmt.Println(s)
-// 	}
-// }
-
-// func displayLines(term string, ind int, line string, file string, content string) string {
-// 	str := fmt.Sprint("(?i)", "(", term, ")")
-// 	reg, _ := regexp.Compile(str)
-// 	hiContent := reg.ReplaceAllString(content, color.Sprintf("@{r!}$1"))
-// 	s := color.Sprintf("@r[%2d]@{|} @b%5s@{|}  @g%s@{|} %s", ind, line, file, hiContent)
-// 	return s
-// }
+func bundleRequests(m []string) []string {
+    bundles := make([]string, 0)
+    for _, line := range m {
+        arr := strings.SplitN(line, " ", 2)
+        switch arr[0] {
+        case "bundle":
+            bundles = append(bundles, arr[1])
+        default:
+            // noop
+            // what about other commands like shell??
+        }
+    }
+    return bundles
+}
