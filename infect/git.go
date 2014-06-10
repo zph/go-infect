@@ -3,14 +3,15 @@ package infect
 import (
     "fmt"
     "os/exec"
+    "strings"
 )
 
 func gitPull(repo string) bool {
-    output := outputDir(repo)
+    // output := outputDir(repo)
     // cd into dir && git pull -f
     cmd := git("pull", "-f")
-    cmdFull := fmt.Sprintf("cd %s && %s", output, cmd)
-    fmt.Println(cmdFull)
+    out := shell(cmd)
+    fmt.Println(out)
     // TODO: actually pull
     return false
 }
@@ -20,7 +21,8 @@ func gitClone(repo string) bool {
     remoteRepo := github(repo)
     args := fmt.Sprintf("%s %s", remoteRepo, output)
     cmd := git("clone", args)
-    fmt.Println(cmd)
+    out := shell(cmd)
+    fmt.Println(out)
     // TODO: actually clone
     return false
 }
@@ -34,7 +36,16 @@ func git(cmd string, args string) string {
 }
 
 func shell(cmd string) string {
-    cmdOut, err := exec.Command(cmd).Output()
+
+    cmds := strings.Split(cmd, " ")
+
+    name := cmds[0]
+    args := make([]string, 0)
+    for _, arg := range cmds[1:] {
+        args = append(args, arg)
+    }
+
+    cmdOut, err := exec.Command(name, args...).Output()
     check(err)
 
     return string(cmdOut)
