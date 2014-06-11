@@ -17,7 +17,7 @@ const verifiedDir bool = true
 
 func install(_ *cli.Context) {
 
-	s := content(vimrc)
+	s := content(vimrc())
 	lines := split(s)
 	mLines := magicLines(lines)
 	bundleReqs := bundleRequests(mLines)
