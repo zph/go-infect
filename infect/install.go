@@ -1,12 +1,19 @@
 package infect
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+const unverifiedDir bool = false
+const verifiedDir bool = true
 
 func install(_ *cli.Context) {
 
@@ -18,12 +25,11 @@ func install(_ *cli.Context) {
 	check(e)
 	dirNames := make(map[string]bool)
 	for _, dir := range dirs {
-		// set to default of false, ie not yet verified as in vimrc
-		dirNames[dir.Name()] = false
+		dirNames[dir.Name()] = unverifiedDir
 	}
 
 	for _, line := range bundleReqs {
-		dirNames[repoName(line)] = true
+		dirNames[repoName(line)] = verifiedDir
 		// add go-routines and cap worker pool at ... 20?
 		processRepo(line)
 	}
@@ -34,15 +40,36 @@ func install(_ *cli.Context) {
 func deleteOldDirs(oldDirs map[string]bool) {
 	deletes := make([]string, 0)
 	for k, v := range oldDirs {
-		if v == false {
-			deletes = append(deletes, k)
-			// TODO: add cmd and confirmation
-			// import "path/filepath"
+		if v == unverifiedDir {
+			k = path.Join(bundleDir, k)
+			k, err = filepath.Abs(k)
+			check(err)
+			response := askDelete(k)
+
+			// TODO: add cmd
 			// rm -rf each folder
-			// k = filepath.Abs(k)
 			// syscall.Rmdir(k)
+			if response {
+				fmt.Printf("syscall.Rmdir(%s)", k)
+			} else {
+				fmt.Printf("noop(%s)", k)
+			}
+
+			// TODO: superfluous remove
+			deletes = append(deletes, k)
 		}
 	}
+}
+
+func askDelete(line string) bool {
+
+	fmt.Printf("Delete: %#v ? [y/N] => ", line)
+	reader := bufio.NewReader(os.Stdin)
+	name, err := reader.ReadString('\n')
+
+	m, err := regexp.MatchString("(?i)^([Y]+)", name)
+	check(err)
+	return m
 }
 
 func repoName(line string) string {
